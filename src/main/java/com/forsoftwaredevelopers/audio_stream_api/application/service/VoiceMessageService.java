@@ -32,8 +32,8 @@ ListPendingVoiceMessageUseCase, PlayVoiceMessageUseCase {
         VoiceMessage voiceMessage = voiceMessageRepository.findById(command.voiceMessageId());
 
         var result = voiceMessage.markAsPlayed();
-        if (result instanceof Result.Fail<Void> fail) {
-            return fail;
+        if (result.isFail()) {
+            return result.propagate();
         }
         voiceMessageRepository.save(voiceMessage);
 
@@ -49,8 +49,8 @@ ListPendingVoiceMessageUseCase, PlayVoiceMessageUseCase {
     public Result<Void> reject(RejectVoiceMessageCommand command) {
         VoiceMessage voiceMessage = voiceMessageRepository.findById(command.voiceMessageId());
         var result = voiceMessage.markAsRejected();
-        if (result instanceof Result.Fail<Void> fail) {
-            return fail;
+        if (result.isFail()) {
+            return result.propagate();
         }
         voiceMessageRepository.save(voiceMessage);
         return Result.ok(null);
@@ -59,11 +59,11 @@ ListPendingVoiceMessageUseCase, PlayVoiceMessageUseCase {
     @Override
     public Result<String> recieve(ReceiveVoiceMessageCommand command) {
         var result = VoiceMessage.create(command.streamId(), command.username(), command.email());
-        if (result instanceof Result.Fail<VoiceMessage>(DomainError error)) {
-            return Result.fail(error);
+        if (result.isFail()) {
+            return result.propagate();
         }
 
-        VoiceMessage voiceMessage = ((Result.Ok<VoiceMessage>) result).value();
+        VoiceMessage voiceMessage = result.getOrThrow();
         voiceMessageRepository.save(voiceMessage);
         return Result.ok(voiceMessage.getId());
     }

@@ -15,7 +15,7 @@ public interface VoiceMessageJpaMapper {
 
 
     default VoiceMessage toDomainModel(VoiceMessageJPAEntity voiceMessageJPAEntity) {
-        var result = VoiceMessage.restore(
+        return VoiceMessage.restore(
             voiceMessageJPAEntity.getId(),
             voiceMessageJPAEntity.getStreamId(),
             voiceMessageJPAEntity.getUsername(),
@@ -24,6 +24,5 @@ public interface VoiceMessageJpaMapper {
             voiceMessageJPAEntity.getCreatedAt(),
             voiceMessageJPAEntity.getUpdatedAt()
         );
-        return ((Result.Ok<VoiceMessage>) result).value();
     }
 }

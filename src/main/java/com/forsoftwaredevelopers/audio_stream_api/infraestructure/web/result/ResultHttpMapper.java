@@ -9,23 +9,22 @@ import com.forsoftwaredevelopers.audio_stream_api.domain.result.Result;
 @Component
 public class ResultHttpMapper {
     public <T> ResponseEntity<?> toResponse(Result<T> result) {
-        if (result instanceof Result.Ok<T>(T value)) {
-            return ResponseEntity.ok(value);
+        if (result.isOk()) {
+            return ResponseEntity.ok(result.getOrThrow());
         }
 
-        var status = mapErrorToHttpStatus(((Result.Fail<T>) result).error().code());
-        return ResponseEntity.status(status).body(((Result.Fail<T>) result).error());
+        var status = mapErrorToHttpStatus(result.getErrorOrThrow().type());
+        return ResponseEntity.status(status).body(result.getErrorOrThrow());
     }
 
-    private HttpStatus mapErrorToHttpStatus(String code) {
-        if (code.endsWith("_REQUIRED") || code.endsWith("_INVALID")) {
-            return HttpStatus.BAD_REQUEST;
-        }
-
-        if (code.endsWith("_NOT_FOUND")) {
-            return HttpStatus.NOT_FOUND;
-        }
-
-        return HttpStatus.INTERNAL_SERVER_ERROR;
+    private HttpStatus mapErrorToHttpStatus(com.forsoftwaredevelopers.audio_stream_api.domain.result.ErrorType type) {
+        return switch (type) {
+            case VALIDATION -> HttpStatus.BAD_REQUEST;
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case CONFLICT -> HttpStatus.CONFLICT;
+            case UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
+            case FORBIDDEN -> HttpStatus.FORBIDDEN;
+            case INTERNAL -> HttpStatus.INTERNAL_SERVER_ERROR;
+        };
     }
 }
