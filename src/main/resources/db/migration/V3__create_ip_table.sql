@@ -1,0 +1,1 @@
+ALTER TABLE voice_message ADD COLUMN ip VARCHAR(20);
